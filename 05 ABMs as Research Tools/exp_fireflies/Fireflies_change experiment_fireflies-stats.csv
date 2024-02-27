@@ -1,0 +1,7 @@
+"BehaviorSpace results (NetLogo 6.4.0)","Stats version 2.0"
+"Fireflies_change.nlogo"
+"experiment_fireflies"
+"02/05/2024 16:46:55:506 +0000"
+"min-pxcor","max-pxcor","min-pycor","max-pycor"
+"-35","35","-35","35"
+"number","show-dark-fireflies?","strategy","cycle-length","flash-length","flashes-to-reset","[step]","(mean) count turtles","(std) count turtles"
