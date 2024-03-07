@@ -25,12 +25,13 @@ to turtle-setup ;; turtle procedure
   set color red
   set shape "circle"
   move-to one-of patches with [not any? other turtles-here]
+  ;Moves the turtle to a random patch that doesn't already have another turtle on it.
   set sugar random-in-range 5 25
   set metabolism random-in-range 1 4
   set vision random-in-range 1 6
   ;; turtles can look horizontally and vertically up to vision patches
   ;; but cannot look diagonally at all
-  set vision-points []
+  set vision-points [] ; Initializes an empty list to store the points that the turtle can see
   foreach (range 1 (vision + 1)) [ n ->
     set vision-points sentence vision-points (list (list 0 n) (list n 0) (list 0 (- n)) (list (- n) 0))
   ]
@@ -74,11 +75,17 @@ end
 to turtle-move ;; turtle procedure
   ;; consider moving to unoccupied patches in our vision, as well as staying at the current patch
   let move-candidates (patch-set patch-here (patches at-points vision-points) with [not any? turtles-here])
+  ; Defines a set of possible move candidates for the turtle,
+  ;which includes the current patch, patches within its vision range,
+  ;and patches without other turtles on them.
   let possible-winners move-candidates with-max [psugar]
+  ;Finds patches with the maximum sugar amount among the move candidates.
+
   if any? possible-winners [
     ;; if there are any such patches move to one of the patches that is closest
     move-to min-one-of possible-winners [distance myself]
   ]
+  ; Checks if there are any patches with sugar, and if so, moves the turtle to the nearest one.
 end
 
 to turtle-eat ;; turtle procedure
@@ -90,6 +97,7 @@ end
 to patch-recolor ;; patch procedure
   ;; color patches based on the amount of sugar they have
   set pcolor (yellow + 4.9 - psugar)
+  ;4.9 create a gradient effect
 end
 
 to patch-growback ;; patch procedure
@@ -103,6 +111,8 @@ end
 
 to-report random-in-range [low high]
   report low + random (high - low + 1)
+  ;(high - low + 1)calculates the size of the range, adding 1 to account for the inclusive range
+  ; shifts the range by low units to start from the desired lower bound.
 end
 
 ;;
@@ -115,10 +125,12 @@ end
 
 to color-agents-by-vision ;; turtle procedure
   set color red - (vision - 3.5)
+  ;turtles with higher vision will have a lighter red color
 end
 
 to color-agents-by-metabolism ;; turtle procedure
   set color red + (metabolism - 2.5)
+  ;turtles with higher metabolism will have a lighter red color
 end
 
 
@@ -211,7 +223,7 @@ CHOOSER
 visualization
 visualization
 "no-visualization" "color-agents-by-vision" "color-agents-by-metabolism"
-0
+1
 
 PLOT
 720
@@ -301,10 +313,10 @@ PENS
 "default" 1.0 0 -16777216 true "" "plotxy ticks mean [metabolism] of turtles"
 
 MONITOR
-95
-160
-190
-209
+100
+445
+195
+494
 population
 count turtles
 17

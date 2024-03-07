@@ -1,3 +1,5 @@
+
+
 turtles-own [
   sugar           ;; the amount of sugar this turtle has
   metabolism      ;; the amount of sugar that each turtles loses each tick
@@ -95,6 +97,8 @@ end
 to patch-growback ;; patch procedure
   ;; gradually grow back all of the sugar for the patch
   set psugar min (list max-psugar (psugar + 1))
+  ;list max-psugar (psugar + 1)creates a list containing the maximum sugar capacity and the incremented sugar level.
+  ;sugar level of the patch doesn't exceed its maximum capacity
 end
 
 ;;
