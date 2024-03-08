@@ -50,10 +50,10 @@ patches-own [
 ;;
 
 to setup
-  if maximum-sugar-endowment <= minimum-sugar-endowment [
-    user-message "Oops: the maximum-sugar-endowment must be larger than the minimum-sugar-endowment"
-    stop
-  ]
+  ;if maximum-sugar-endowment <= minimum-sugar-endowment [
+    ;user-message "Oops: the maximum-sugar-endowment must be larger than the minimum-sugar-endowment"
+    ;stop
+  ;]
   clear-all
   create-turtles initial-population [ turtle-setup ]
   set death-count 0
@@ -1033,12 +1033,26 @@ NetLogo 6.4.0
     <metric>mean-sugar</metric>
     <metric>median-sugar</metric>
     <metric>sd-sugar</metric>
+    <metric>starve-count</metric>
+    <metric>age-death-count</metric>
     <steppedValueSet variable="maximum-sugar-endowment" first="20" step="5" last="50"/>
     <steppedValueSet variable="minimum-sugar-endowment" first="0" step="5" last="30"/>
     <enumeratedValueSet variable="visualization">
       <value value="&quot;color-agents-by-vision&quot;"/>
     </enumeratedValueSet>
     <steppedValueSet variable="initial-population" first="0" step="20" last="1000"/>
+  </experiment>
+  <experiment name="exp3-3-new" repetitions="1" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="1000"/>
+    <metric>count turtles</metric>
+    <steppedValueSet variable="maximum-sugar-endowment" first="20" step="5" last="50"/>
+    <steppedValueSet variable="minimum-sugar-endowment" first="0" step="5" last="30"/>
+    <enumeratedValueSet variable="visualization">
+      <value value="&quot;color-agents-by-vision&quot;"/>
+    </enumeratedValueSet>
+    <steppedValueSet variable="initial-population" first="0" step="50" last="1000"/>
   </experiment>
 </experiments>
 @#$#@#$#@

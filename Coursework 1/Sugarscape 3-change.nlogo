@@ -1,6 +1,10 @@
 globals [
   gini-index-reserve
   lorenz-points
+  gini-index
+  death-count
+  survival-ratio
+  death-ratio
 
   ;Add death counters
   starve-count
@@ -46,12 +50,15 @@ patches-own [
 ;;
 
 to setup
-  if maximum-sugar-endowment <= minimum-sugar-endowment [
-    user-message "Oops: the maximum-sugar-endowment must be larger than the minimum-sugar-endowment"
-    stop
-  ]
+  ;if maximum-sugar-endowment <= minimum-sugar-endowment [
+    ;user-message "Oops: the maximum-sugar-endowment must be larger than the minimum-sugar-endowment"
+    ;stop
+  ;]
   clear-all
   create-turtles initial-population [ turtle-setup ]
+  set death-count 0
+  set survival-ratio 1
+
   setup-patches
   update-lorenz-and-gini
   reset-ticks
@@ -122,6 +129,12 @@ to go
   ]
   update-lorenz-and-gini
   update-mean-sugar
+
+  let total-turtles count turtles
+  set survival-ratio (total-turtles / initial-population)
+  set gini-index ((gini-index-reserve / count turtles) * 2)
+  set death-ratio starve-count / (starve-count + age-death-count + 1)
+
   tick
 end
 
@@ -341,7 +354,7 @@ CHOOSER
 visualization
 visualization
 "no-visualization" "color-agents-by-vision" "color-agents-by-metabolism"
-0
+1
 
 PLOT
 720
@@ -370,7 +383,7 @@ initial-population
 initial-population
 10
 1000
-400.0
+280.0
 10
 1
 NIL
@@ -426,7 +439,7 @@ true
 false
 "" ""
 PENS
-"default" 1.0 0 -13345367 true "" "plot (gini-index-reserve / count turtles) * 2"
+"default" 1.0 0 -13345367 true "" "plot gini-index"
 
 SLIDER
 10
@@ -492,7 +505,7 @@ true
 false
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "plot starve-count / (starve-count + age-death-count + 1)"
+"default" 1.0 0 -16777216 true "" "plotxy ticks death-ratio"
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -969,6 +982,77 @@ NetLogo 6.4.0
     <enumeratedValueSet variable="initial-population">
       <value value="400"/>
     </enumeratedValueSet>
+  </experiment>
+  <experiment name="exp1-3-new" repetitions="2" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="1000"/>
+    <metric>gini-index</metric>
+    <metric>survival-ratio</metric>
+    <metric>death-ratio</metric>
+    <metric>mean-sugar</metric>
+    <metric>median-sugar</metric>
+    <metric>sd-sugar</metric>
+    <enumeratedValueSet variable="maximum-sugar-endowment">
+      <value value="25"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="minimum-sugar-endowment">
+      <value value="5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="visualization">
+      <value value="&quot;color-agents-by-vision&quot;"/>
+    </enumeratedValueSet>
+    <steppedValueSet variable="initial-population" first="0" step="20" last="1000"/>
+  </experiment>
+  <experiment name="exp2-3" repetitions="2" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="1000"/>
+    <metric>gini-index</metric>
+    <metric>survival-ratio</metric>
+    <metric>death-ratio</metric>
+    <metric>mean-sugar</metric>
+    <metric>median-sugar</metric>
+    <metric>sd-sugar</metric>
+    <steppedValueSet variable="maximum-sugar-endowment" first="20" step="5" last="50"/>
+    <steppedValueSet variable="minimum-sugar-endowment" first="0" step="5" last="30"/>
+    <enumeratedValueSet variable="visualization">
+      <value value="&quot;color-agents-by-vision&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="initial-population">
+      <value value="500"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="exp3-3" repetitions="1" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="1000"/>
+    <metric>gini-index</metric>
+    <metric>survival-ratio</metric>
+    <metric>death-ratio</metric>
+    <metric>mean-sugar</metric>
+    <metric>median-sugar</metric>
+    <metric>sd-sugar</metric>
+    <metric>starve-count</metric>
+    <metric>age-death-count</metric>
+    <steppedValueSet variable="maximum-sugar-endowment" first="20" step="5" last="50"/>
+    <steppedValueSet variable="minimum-sugar-endowment" first="0" step="5" last="30"/>
+    <enumeratedValueSet variable="visualization">
+      <value value="&quot;color-agents-by-vision&quot;"/>
+    </enumeratedValueSet>
+    <steppedValueSet variable="initial-population" first="0" step="20" last="1000"/>
+  </experiment>
+  <experiment name="exp3-3-new" repetitions="1" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="1000"/>
+    <metric>count turtles</metric>
+    <steppedValueSet variable="maximum-sugar-endowment" first="20" step="5" last="50"/>
+    <steppedValueSet variable="minimum-sugar-endowment" first="0" step="5" last="30"/>
+    <enumeratedValueSet variable="visualization">
+      <value value="&quot;color-agents-by-vision&quot;"/>
+    </enumeratedValueSet>
+    <steppedValueSet variable="initial-population" first="0" step="50" last="1000"/>
   </experiment>
 </experiments>
 @#$#@#$#@
