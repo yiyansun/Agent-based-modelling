@@ -383,7 +383,7 @@ initial-population
 initial-population
 10
 1000
-280.0
+400.0
 10
 1
 NIL
@@ -398,7 +398,7 @@ minimum-sugar-endowment
 minimum-sugar-endowment
 0
 200
-29.0
+15.0
 1
 1
 NIL
@@ -450,7 +450,7 @@ maximum-sugar-endowment
 maximum-sugar-endowment
 0
 200
-99.0
+30.0
 1
 1
 NIL
@@ -1046,7 +1046,14 @@ NetLogo 6.4.0
     <setup>setup</setup>
     <go>go</go>
     <timeLimit steps="1000"/>
-    <metric>count turtles</metric>
+    <metric>gini-index</metric>
+    <metric>survival-ratio</metric>
+    <metric>death-ratio</metric>
+    <metric>mean-sugar</metric>
+    <metric>median-sugar</metric>
+    <metric>sd-sugar</metric>
+    <metric>starve-count</metric>
+    <metric>age-death-count</metric>
     <steppedValueSet variable="maximum-sugar-endowment" first="20" step="5" last="50"/>
     <steppedValueSet variable="minimum-sugar-endowment" first="0" step="5" last="30"/>
     <enumeratedValueSet variable="visualization">
