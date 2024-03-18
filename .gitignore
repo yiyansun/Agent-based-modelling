@@ -6,6 +6,10 @@ __pycache__/
 # C extensions
 *.so
 
+
+
+/NetLogo多主体建模入门.pdf
+
 # Distribution / packaging
 .Python
 build/
