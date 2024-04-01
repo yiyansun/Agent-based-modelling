@@ -1,60 +1,97 @@
-extensions [matrix]
-
-
 globals
 [
-  num-turtles
-  payoff-matrix
-  average-turtle-size
+  num-humans
+  num-chickens
+
+  human-deviation-angle
 ]
 
 
-turtles-own
+breed
 [
-  my-strategy
-  utility
+  humans human
+]
+
+breed
+[
+  chickens chicken
+]
+
+breed
+[
+ deads dead
+]
+
+patches-own
+[
+]
+
+humans-own
+[
+]
+
+chickens-own
+[
+]
+
+deads-own
+[
 ]
 
 
 to setup
 
   ca
-
-  setup-globals
-  setup-turtles
-
   reset-ticks
 
-end
-
-
-to setup-globals
-
-  set num-turtles 10
-  set payoff-matrix matrix:from-row-list [[2 1 0] [3 1 0.3] [4 1 0.6]]
-  set average-turtle-size 2
+  set-globals
+  setup-patches
+  spawn-humans
+  spawn-chickens
 
 end
 
 
-to setup-turtles
+to set-globals
 
-  set-default-shape turtles "circle"
+  set num-humans 20
+  set human-deviation-angle 30
 
-  crt num-turtles
+  set num-chickens 20
+
+end
+
+
+to setup-patches
+
+end
+
+
+to spawn-humans
+
+  ask n-of num-humans patches
   [
-    set utility 0
-    set-strategy
+  sprout-humans 1
+  [
+    set color pink
+    set size 5
+  ]
   ]
 
-  layout-circle turtles min (list (4 * max-pxcor / 5) (4 * max-pycor / 5))
-
 end
 
 
-to set-strategy
+to spawn-chickens
 
-  set my-strategy "random"
+  ask n-of num-chickens patches
+  [
+  sprout-chickens 1
+  [
+    set color white
+    set size 3
+    set shape "circle"
+  ]
+  ]
 
 end
 
@@ -63,36 +100,61 @@ to go
 
   tick
 
-  interaction
-  set-sizes
+  humans-move
+
+  chickens-die
+  chickens-move
 
 end
 
 
-to interaction
+to humans-move
+
+  ask humans
+  [
+    set heading (heading - (human-deviation-angle / 2) + random (human-deviation-angle + 1))
+    fd 1
+  ]
 
 end
 
-to add2numbers [agent1 agent2]
-  ask agent1
-  [set size 10]
-  ask agent2
-  [set size 4]
+
+to chickens-die
+
+  ask chickens
+  [
+    if any? humans-here
+    [
+      hatch 1
+      [
+        set breed deads
+        set color red
+        set shape "x"
+      ]
+      die
+    ]
+  ]
+
 end
 
 
-to set-sizes
+to chickens-move
+
+  ask chickens
+  [
+    move-to one-of neighbors4
+  ]
 
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-210
-10
-647
-448
+212
+15
+750
+554
 -1
 -1
-13.0
+2.64
 1
 10
 1
@@ -102,21 +164,21 @@ GRAPHICS-WINDOW
 0
 0
 1
--16
-16
--16
-16
-0
-0
+-100
+100
+-100
+100
+1
+1
 1
 ticks
 30.0
 
 BUTTON
-106
-59
-172
-92
+79
+67
+145
+100
 NIL
 setup
 NIL
@@ -130,10 +192,10 @@ NIL
 1
 
 BUTTON
-106
-98
-173
-131
+79
+108
+146
+141
 NIL
 go
 T
@@ -488,7 +550,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.4.0
+NetLogo 6.2.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

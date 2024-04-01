@@ -1,7 +1,38 @@
+; The bug that I mentioned in the live coding session was in the find-human procedure.
+; See that procedure for an explanation and the correction.
+
+; You will see that there is another bug that I didn't pick up on during the session:
+; My procedure to make mosquitoes turn around when they hit the edge of the world has actually...
+; ... resulted in some mosquitoes getting stuck turning around and around forever.
+; I have left this bug in, so feel free to try to correct it as an exercise.
+
+breed [humans human]
+breed [mos mo]
+
+
 globals
 [
-  population
-  robber
+  ;human-pop
+  mo-pop
+  mo-speed
+  mo-angle-change
+
+  mo-vision-angle
+  mo-vision-dist
+]
+
+
+humans-own
+[
+ disease? ; Replaced "ebola?" with the more generic (and less inaccurate) "disease?"
+]
+
+
+mos-own
+[
+  target
+  fed?
+  disease?
 ]
 
 
@@ -10,122 +41,238 @@ patches-own
 ]
 
 
-turtles-own
-[
-  money
-  is-robber?
-]
-
-
 to setup
 
-  ca
-  reset-ticks
+ ca
+ reset-ticks
 
-  set-globals
-  setup-turtles
+ setup-globals
+ build-geography
+ create-agents
 
-end
-
-
-to set-globals
-
-  set population 20
+ ask one-of mos [set disease? true]
 
 end
 
 
-to setup-turtles
+to setup-globals
 
-    crt population
-  [
-    set color yellow
-    setxy random-pxcor random-pycor
-    set money (1 + random 10)
-    set is-robber? false
-  ]
+  set-default-shape humans "circle"
 
-  ask one-of turtles
-  [
-    set is-robber? true
-    set color blue
-    set shape "circle"
-    set robber self
-
-  ]
+  set human-pop 50
+  set mo-pop 10
+  set mo-speed 1
+  set mo-angle-change 20
+  set mo-vision-angle 60
+  set mo-vision-dist 5
 
 end
 
 
 to go
 
-  tick
+  human-move
+  mo-move
+  find-human
+  mo-feed
+  mo-breed
+  see-disease
 
-  move
-  steal
+  tick
 
 end
 
 
-to move
+to see-disease
 
-  ask turtles
+  ask humans with [disease? = true]
+  [set label "x"]
+
+  ask mos with [disease? = true]
+  [set label "x"]
+
+end
+
+
+to human-move
+
+  ask humans
   [
-    face one-of neighbors4
-    fd 1
+    move-to one-of (neighbors4 with [pcolor = green])
   ]
 
 end
 
 
+to mo-move
 
-to steal
-
-  ask robber
+  ask mos
   [
-    if any? other turtles-here
-    [
-      let victim (one-of other turtles-here)
-      set money (money + ( [money] of victim))
 
-      ask victim
-      [
-        set money 0
-        set color ([color] of myself) ;;myself refers to agent ask to do this
-      ]
+    if (xcor > (max-pxcor - 1)) or (xcor < (min-pxcor + 1)) or (ycor > (max-pycor - 1)) or (ycor < (min-pycor + 1))
+    [
+     set heading (heading + 180)
+    ]
+
+   ifelse (target = nobody)
+    [
+   fd mo-speed
+   set heading (heading - 10 + random (mo-angle-change + 1))
+    ]
+    [
+      human-targetting-movement
+    ]
+
+  ]
+
+end
+
+
+to mo-breed
+
+  ask mos with [fed? = true and pcolor = blue]
+  [
+  hatch-mos 1
+  [
+   set color cyan
+   set target nobody
+   set fed? false
+   set disease? false
+  ]
+    set fed? false
+    set color white
+  ]
+
+end
+
+
+to human-targetting-movement
+
+  let dist-to-target (distance target)
+
+  ifelse (patch-here = ([patch-here] of target))
+  []
+  [
+    face target
+    fd min (list (mo-speed * 2) dist-to-target)
+  ]
+
+end
+
+
+to mo-feed
+
+  ask mos with [target != nobody]
+  [
+    if (patch-here = ([patch-here] of target))
+    [
+      set fed? true
+      set color red
+
+      if ([disease?] of target) = true
+      [set disease? true]
+
+      if disease? = true
+      [ask target [set disease? true]]
+
+      set target nobody
     ]
   ]
 
 end
 
-to-report mean-civ-wealth
 
-  report mean ( [money] of (turtles with [is-robber? = false]) )
+to find-human
+
+  ask mos
+  [
+
+    ; I have corrected this line since the live-coding session.
+    ; I hadn't noticed, but there was an error here.
+    ; It previously read "if (target = nobody)", but that meant that mosquitoes who had fed were still seeking new targets.
+    ; Adding "and (fed? = false)" corrected this issue.
+    ; The bug that I mentioned during the session (mosquitoes infecting humans even when they have already fed) was a side-effect of this error and so is also corrected.
+
+    if (target = nobody) and (fed? = false)
+    [
+      let chosen-human one-of (humans in-cone mo-vision-dist mo-vision-angle)
+      set target chosen-human
+    ]
+  ]
 
 end
 
 
+to create-agents
+
+  generate-humans
+  generate-mos
+
+end
 
 
+to generate-humans
 
-; KEY LEARNING POINTS
+  ask n-of human-pop (patches with [pcolor = green])
+  [
+    sprout-humans 1
+    [
+      set color black
+      set disease? false
+    ]
+  ]
 
-; other
-; of
-; self
-; myself
-; to-report
-; monitors
-; graphs
+end
+
+
+to generate-mos
+
+  ask n-of mo-pop patches
+  [
+    sprout-mos 1
+    [
+      set color white
+      set target nobody
+      set fed? false
+      set disease? false
+    ]
+  ]
+
+end
+
+
+to-report num-infected
+
+  report count (humans with [disease? = true])
+
+end
+
+
+to build-geography
+
+  ask patches [set pcolor green]
+  ask patches with [abs(pxcor) <= 1]
+  [set pcolor blue]
+
+  let pond-centre-x random-pxcor
+  let pond-centre-y random-pycor
+
+  ask (patch pond-centre-x pond-centre-y)
+  [
+  ask patches in-radius 3
+    [set pcolor blue]
+  ]
+
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
-248
-12
-665
-430
+210
+10
+751
+552
 -1
 -1
-19.5
+13.0
 1
 10
 1
@@ -135,9 +282,9 @@ GRAPHICS-WINDOW
 0
 0
 1
-0
+-20
 20
-0
+-20
 20
 1
 1
@@ -146,9 +293,26 @@ ticks
 30.0
 
 BUTTON
-69
+135
+47
+201
+80
+NIL
+go
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+135
 10
-137
+201
 43
 NIL
 setup
@@ -163,27 +327,10 @@ NIL
 1
 
 BUTTON
-69
-45
-137
-78
-NIL
-go
-T
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-69
-80
-137
-113
+135
+84
+201
+117
 step
 go
 NIL
@@ -196,46 +343,31 @@ NIL
 NIL
 1
 
-MONITOR
-60
-164
-165
-209
-Robber's Money
-[money] of robber
+SLIDER
+13
+135
+203
+168
+human-pop
+human-pop
 0
+200
+50.0
 1
-11
+1
+NIL
+HORIZONTAL
 
 MONITOR
-55
-221
-167
-266
-mean-civ-wealth
-mean-civ-wealth
-2
+62
+239
+159
+284
+NIL
+num-infected
+17
 1
 11
-
-PLOT
-21
-286
-221
-436
-Wealth of Robber vs Others
-Ticks
-Money
-0.0
-10.0
-0.0
-10.0
-true
-false
-"" ""
-PENS
-"default" 1.0 0 -16777216 true "" "plot mean-civ-wealth"
-"pen-1" 1.0 0 -7500403 true "" "plot ([money] of robber)"
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -579,7 +711,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.4.0
+NetLogo 6.2.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

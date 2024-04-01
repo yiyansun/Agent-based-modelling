@@ -1,57 +1,16 @@
-
-;Patches contain food that turtles can eat, with each patch having a maximum amount of food that it can contain (between 0 and 100).
-;Food starts at its maximum value and grows back at a rate of 1 unit per tick if it is depleted.
-
-;Each turtle (initial population 100) has an energy level (initially 100), which reduces by a fixed amount (between 2 and 10, varying between turtles) at every tick.
-;Turtles can consume the food on their patch at a rate of 5 units per tick to replenish their energy. Turtles with zero energy will die.
-
-;If a neighbouring patch contains more food than their current patch, turtles move to the patch with more available food.
-
-
-
-
-
 globals
 [
-  num-humans
-  num-chickens
-  max-food-per-patch
-  food-regrowth-rate
-  energy-depletion-range
-  energy-replenish-rate
-]
-
-breed [
-  humans human
-]
-
-breed [
-  chickens chicken
-]
-
-breed [
-  deads dead
 ]
 
 
-;Add two patch variables to patches-own to record the maximum food
-;that a patch can contain and the current amount of food at a patch.
 patches-own
 [
-  max-food-per-patch
-  current-food-level
 ]
 
-humans-own [
-  energy-level
-  energy-use-per-tick
-]
 
-chickens-own [
-  energy-level
-  energy-use-per-tick
+turtles-own
+[
 ]
-
 
 
 to setup
@@ -63,26 +22,9 @@ to setup
 end
 
 
-
-to setup-patches
-  ask patches[
-    set max-food-per-patch random 101; Generates a random number between 0 and 100
-    set current-food-level max-food-per-patch ; Initial food level is set to the maximum
-  ]
-end
-
-to color-patches
-  ask patches[
-    set pcolor scale-color green current-food-level 0 max-food-per-patch ;Color Patches by Food Level
-  ]
-end
-
 to go
+
   tick
-  color-patches
-  update-food
-  humans-move
-  chickens-move
 
 end
 @#$#@#$#@
@@ -506,7 +448,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.4.0
+NetLogo 6.0.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

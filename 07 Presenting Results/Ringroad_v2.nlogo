@@ -1,95 +1,177 @@
-extensions [matrix]
-
 globals
 [
   num-turtles
-  payoff-matrix
+  drive-side-options
+  ringroad-location
 ]
-
 
 turtles-own
 [
-  money
+  drive-side
+  encounters-memory
+  bad-drivers-memory
 ]
-
 
 to setup
 
   ca
 
-  setup-globals
-  setup-turtles
+  globals-setup
+  patches-setup
+  add-linking-road
+  turtles-setup
 
   reset-ticks
 
 end
 
 
-to setup-globals
-
-  set num-turtles 2
-  set payoff-matrix matrix:from-row-list [[1 -1] [-1 1]]
-
-end
-
-
-to setup-turtles
-
-  crt num-turtles
-  [
-    set money 10
-    set color white
-  ]
-
-end
-
-
 to go
+
+  ask turtles
+  [
+    set color red
+    choose-direction
+    choose-drive-side
+    fd 1
+    banter
+    check-crash
+  ]
 
   tick
 
-  resize-turtles
+end
+
+
+to globals-setup
+
+  set num-turtles 40
+
+  set ringroad-location (max-pxcor - 6)
+  set drive-side-options list "left" "right"
+
+end
+
+
+to patches-setup
+
+  ask patches with [(pxcor = -1 * ringroad-location or pxcor = ringroad-location or pycor = -1 * ringroad-location or pycor = ringroad-location) and (pxcor >= -1 * ringroad-location and pxcor <= ringroad-location and pycor >= -1 * ringroad-location and pycor <= ringroad-location)]
+  [set pcolor grey]
+
+end
+
+
+to add-linking-road
+
+  ask patches with [ pxcor = 0 and (pycor >= -1 * ringroad-location and pycor <= ringroad-location)]
+  [set pcolor grey]
+
+end
+
+
+to turtles-setup
+
+  ask n-of num-turtles patches with [pcolor = grey]
+  [sprout 1 [set color red]]
 
   ask turtles
   [
-    set strategy random 2
-  ]
-
-  let strat1 [strategy] of turtle 0
-  let strat2 [strategy] of turtle 1
-
-  ask turtle 0 [set money (money + matrix:get payoff-matrix strat1 strat2)]
-  ask turtle 1 [set money (money - matrix:get payoff-matrix strat1 strat2)]
-
-  ask turtles
-  [
-    if money = 0
-    [die]
+    set encounters-memory []
+    set bad-drivers-memory turtle-set nobody
+    choose-direction
+    set drive-side one-of drive-side-options
   ]
 
 end
 
 
-to resize-turtles
+to choose-direction
+
+  set heading towards one-of (neighbors4 in-cone 1 300) with [pcolor = grey]
+
+end
+
+to choose-drive-side
+
+  if not empty? encounters-memory
+  [set drive-side one-of modes encounters-memory]
+
+end
+
+
+to check-crash
+
+  let crashers (turtles-here with [(heading != [heading] of myself)])
+
+  let actual-crashers (crashers with [drive-side != [drive-side] of myself])
+
+  ask actual-crashers [set color yellow]
+
+  if one-of actual-crashers != nobody
+  [
+    set color yellow
+  ]
+
+  ask crashers
+  [
+    remember-encounters
+    ask myself [remember-encounters]
+  ]
+
+  ask actual-crashers
+  [
+    remember-crashers
+    ask myself [remember-crashers]
+  ]
+
+end
+
+to remember-encounters
+
+  set encounters-memory (lput ([drive-side] of myself) encounters-memory)
+
+end
+
+to remember-crashers
+
+  set bad-drivers-memory (turtle-set myself bad-drivers-memory)
+
+end
+
+to banter
+
+  let observed-turtle (one-of other turtles-here)
+
+  if observed-turtle != nobody
+  [
+  if member? observed-turtle bad-drivers-memory
+  [
+  type self
+  type ": I remember you, "
+  type observed-turtle
+  print ". You're a bad driver!"
+  ]
+  ]
+
 
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-210
-10
-647
-448
+533
+21
+1075
+564
 -1
 -1
-13.0
+16.2
 1
 10
 1
 1
 1
 0
-0
-0
+1
+1
 1
 -16
 16
@@ -102,10 +184,10 @@ ticks
 30.0
 
 BUTTON
-106
+37
+26
+103
 59
-172
-92
 NIL
 setup
 NIL
@@ -119,10 +201,10 @@ NIL
 1
 
 BUTTON
-106
-98
-173
-131
+113
+26
+181
+59
 NIL
 go
 T
@@ -135,22 +217,23 @@ NIL
 NIL
 1
 
-BUTTON
-106
-136
-174
-169
-step
-go
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
+PLOT
+42
+168
+449
+576
+Proportion Driving on Left
+Tick
+Left Drivers
+0.0
+10.0
+0.0
+1.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -2674135 true "" "plot (count turtles with [drive-side = \"left\"]) / (count turtles)"
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -494,7 +577,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.4.0
+NetLogo 6.0.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

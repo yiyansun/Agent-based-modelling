@@ -1,19 +1,42 @@
 globals
 [
-  population
-  robber
+  num-humans
+  num-chickens
+
+  human-deviation-angle ; how far to vary as the human moves
+  human-vision-distance ; how far the human can see
 ]
 
+
+breed
+[
+  humans human
+]
+
+breed
+[
+  chickens chicken
+]
+
+breed
+[
+ deads dead
+]
 
 patches-own
 [
 ]
 
-
-turtles-own
+humans-own
 [
-  money
-  is-robber?
+]
+
+chickens-own
+[
+]
+
+deads-own
+[
 ]
 
 
@@ -23,34 +46,53 @@ to setup
   reset-ticks
 
   set-globals
-  setup-turtles
+  setup-patches
+  spawn-humans
+  spawn-chickens
 
 end
 
 
 to set-globals
 
-  set population 20
+  set num-humans 20
+  set human-deviation-angle 30
+  set human-vision-distance 15
+
+  set num-chickens 20
 
 end
 
 
-to setup-turtles
+to setup-patches
 
-    crt population
+end
+
+
+to spawn-humans
+
+  ask n-of num-humans patches
   [
-    set color yellow
-    setxy random-pxcor random-pycor
-    set money (1 + random 10)
-    set is-robber? false
+  sprout-humans 1
+  [
+    set color pink
+    set size 5
+  ]
   ]
 
-  ask one-of turtles
+end
+
+
+to spawn-chickens
+
+  ask n-of num-chickens patches
   [
-    set is-robber? true
-    set color blue
-    set robber self
+  sprout-chickens 1
+  [
+    set color white
+    set size 3
     set shape "circle"
+  ]
   ]
 
 end
@@ -60,64 +102,91 @@ to go
 
   tick
 
-  move
-  steal
+  humans-move
+  humans-look
+
+  chickens-die
+  chickens-move
 
 end
 
+; a function to visualise which patches are visible to humans
+to humans-look
 
-to move
+  ; reset the patches each step
+  ask patches [ set pcolor black]
 
-  ask turtles
+  ; calculate which patches humans can see
+  ask humans [
+    ; ask all patches visible to this individual human to turn blue
+    ask patches-i-can-see [set pcolor blue]
+  ]
+end
+
+; a function to report the set of patches inside the vision cone
+to-report patches-i-can-see
+  report patches in-cone human-vision-distance human-deviation-angle
+end
+
+to humans-move
+
+  ask humans
   [
-    face one-of neighbors4
+    ; set up the set of patches visible to this human
+    let my-visible-patches patches-i-can-see
+
+    ; are there any chickens on the patches I can see?
+    ifelse any? chickens-on my-visible-patches
+      ; There are! Turn toward one of them!
+    [ let my-target one-of chickens-on my-visible-patches
+      face my-target
+      ask my-target [set color magenta] ; mark this chicken as one that has been seen
+    ]
+      ; There aren't! Wander at random.
+    [set heading (heading - (human-deviation-angle / 2) + random (human-deviation-angle + 1))]
+
     fd 1
   ]
 
 end
 
 
-to steal
+to chickens-die
 
-  ask robber
+  ask chickens
   [
-    if (any? other turtles-here)
+    if any? humans-here
+    [
+      hatch 1
       [
-        let victim one-of other turtles-here
-        set money (money + ([money] of victim))
-        ask victim
-        [
-          set money 0
-          set color ([color] of myself)
-        ]
+        set breed deads
+        set color red
+        set shape "x"
       ]
+      die
+    ]
   ]
 
 end
 
 
-to-report mean-civilian-wealth
+to chickens-move
 
-  report mean [money] of (turtles with [is-robber? = false])
+  ask chickens
+  [
+    move-to one-of neighbors4
+  ]
 
 end
-
-; other
-; monitor
-; graph
-; to-report
-; of
-; self
-; myself
 @#$#@#$#@
 GRAPHICS-WINDOW
-248
-12
-665
-430
+212
+15
+750
+554
 -1
 -1
-19.5
+2.64
 1
 10
 1
@@ -127,10 +196,10 @@ GRAPHICS-WINDOW
 0
 0
 1
-0
-20
-0
-20
+-100
+100
+-100
+100
 1
 1
 1
@@ -138,10 +207,10 @@ ticks
 30.0
 
 BUTTON
-69
-10
-137
-43
+79
+67
+145
+100
 NIL
 setup
 NIL
@@ -155,10 +224,10 @@ NIL
 1
 
 BUTTON
-69
-45
-137
-78
+79
+108
+146
+141
 NIL
 go
 T
@@ -172,11 +241,11 @@ NIL
 1
 
 BUTTON
-69
-80
-137
-113
-step
+82
+162
+146
+196
+NIL
 go
 NIL
 1
@@ -187,47 +256,6 @@ NIL
 NIL
 NIL
 1
-
-MONITOR
-24
-193
-166
-238
-NIL
-mean-civilian-wealth
-2
-1
-11
-
-MONITOR
-24
-144
-166
-189
-Robber's Money
-[money] of robber
-0
-1
-11
-
-PLOT
-23
-245
-242
-431
-plot 1
-NIL
-NIL
-0.0
-10.0
-0.0
-10.0
-true
-false
-"" ""
-PENS
-"pen-1" 1.0 0 -7171555 true "" "plot mean-civilian-wealth"
-"pen-2" 1.0 0 -14070903 true "" "plot ([money] of robber)"
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -571,7 +599,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.4.0
+NetLogo 6.3.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

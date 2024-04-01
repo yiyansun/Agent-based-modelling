@@ -1,57 +1,45 @@
 globals
 [
-  ;tfa
-  ;teu
+  population
 ]
 
 
 patches-own
 [
-  max_food
-  current_food
 ]
 
 
 turtles-own
 [
-  current_energy
-  energy_use
+  money
 ]
 
 
 to setup
 
   ca
-
-  setup-patches
-  setup-turtles
-
   reset-ticks
+
+  set-globals
+  setup-turtles
 
 end
 
 
-to setup-patches
+to set-globals
 
-  ask patches
-  [
-    set max_food random tfa + 1
-    set current_food max_food
-    set pcolor scale-color yellow current_food 0 100
-  ]
+  set population 20
 
 end
 
 
 to setup-turtles
 
-  crt 100
+    crt population
   [
-    set current_energy 100
-    set energy_use 2 + (random teu - 1)
+    set color yellow
     setxy random-pxcor random-pycor
-    set color red
-    set size 1.5
+    set money (1 + random 10)
   ]
 
 end
@@ -59,68 +47,42 @@ end
 
 to go
 
-  consume-food
-  regrow-food
-  use-energy
-  find-most-food
-
-  ask patches[ set pcolor scale-color yellow current_food 0 100 ]
-
   tick
 
+  move
+
 end
 
 
-to consume-food
+to move
 
   ask turtles
   [
-    let meal_size min (list 5 current_food)
-    set current_energy current_energy + meal_size
-    set current_food current_food - meal_size
+    face one-of neighbors4
+    fd 1
   ]
 
 end
 
 
-to regrow-food
+; KEY LEARNING POINTS
 
-  ask patches
-  [
-    set current_food min (list (current_food + 1) max_food)
-  ]
-
-end
-
-
-to use-energy
-
-  ask turtles
-  [
-    set current_energy (current_energy - energy_use)
-    if current_energy <= 0 [die]
-  ]
-
-end
-
-
-to find-most-food
-
-  ask turtles
-  [
-    uphill current_food
-  ]
-
-end
+; other
+; of
+; self
+; myself
+; to-report
+; monitors
+; graphs
 @#$#@#$#@
 GRAPHICS-WINDOW
-405
-10
-839
-445
+248
+12
+665
+430
 -1
 -1
-10.4
+19.5
 1
 10
 1
@@ -131,19 +93,19 @@ GRAPHICS-WINDOW
 0
 1
 0
-40
+20
 0
-40
-0
-0
+20
+1
+1
 1
 ticks
 30.0
 
 BUTTON
-89
+69
 10
-157
+137
 43
 NIL
 setup
@@ -158,10 +120,10 @@ NIL
 1
 
 BUTTON
-165
-10
-233
-43
+69
+45
+137
+78
 NIL
 go
 T
@@ -175,10 +137,10 @@ NIL
 1
 
 BUTTON
-250
-10
-318
-43
+69
+80
+137
+113
 step
 go
 NIL
@@ -190,72 +152,6 @@ NIL
 NIL
 NIL
 1
-
-PLOT
-7
-52
-399
-236
-Population
-Tick
-Population
-0.0
-10.0
-0.0
-100.0
-true
-false
-"" ""
-PENS
-"default" 1.0 0 -5298144 true "" "plot count turtles"
-
-PLOT
-7
-249
-399
-433
-Mean energy use per tick
-Tick
-Mean energy use
-0.0
-10.0
-0.0
-10.0
-true
-false
-"" ""
-PENS
-"default" 1.0 0 -14070903 true "" "plot mean [energy_use] of turtles"
-
-SLIDER
-132
-446
-304
-479
-tfa
-tfa
-10
-200
-100.0
-1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-132
-497
-304
-530
-teu
-teu
-1
-200
-50.0
-1
-1
-NIL
-HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -599,26 +495,10 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.4.0
+NetLogo 6.2.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
-<experiments>
-  <experiment name="experiment_1" repetitions="2" sequentialRunOrder="false" runMetricsEveryStep="false">
-    <setup>setup</setup>
-    <go>go</go>
-    <timeLimit steps="200"/>
-    <metric>count turtles</metric>
-    <steppedValueSet variable="teu" first="2" step="2" last="20"/>
-    <enumeratedValueSet variable="tfa">
-      <value value="50"/>
-      <value value="75"/>
-      <value value="100"/>
-      <value value="125"/>
-      <value value="150"/>
-    </enumeratedValueSet>
-  </experiment>
-</experiments>
 @#$#@#$#@
 @#$#@#$#@
 default

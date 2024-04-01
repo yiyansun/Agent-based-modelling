@@ -1,187 +1,125 @@
 globals
 [
-  num-humans
-  num-chickens
-
-  human-deviation-angle ;;Angle by which humans can deviate from their current heading when moving.
-  human-vision-distance
+  initial_population
+  ; age_of_maturity
+  ; age_of_death
 ]
 
 
-breed
+turtles-own
 [
-  humans human
+  age
 ]
 
-breed
-[
-  chickens chicken
-]
-
-breed
-[
- deads dead
-]
 
 patches-own
 [
-]
-
-humans-own
-[
-]
-
-chickens-own
-[
-]
-
-deads-own
-[
+  num-born
 ]
 
 
 to setup
 
   ca
+
+  set_globals
+
+  crt initial_population
+  [
+    set age (random age_of_death)
+    setxy random-pxcor random-pycor
+    set color one-of [blue red]
+    set size (0.5 + 2 * (age / age_of_death))
+  ]
+
+  ask patches
+  [
+    set num-born 0
+  ]
+
   reset-ticks
 
-  set-globals
-  setup-patches
-  spawn-humans
-  spawn-chickens
-
 end
 
 
-to set-globals
+to set_globals
 
-  set num-humans 20
-  set human-deviation-angle 30
-  set
-
-  set num-chickens 20
-
-end
-
-
-to setup-patches
-
-end
-
-
-to spawn-humans
-
-  ask n-of num-humans patches
-  [
-  sprout-humans 1
-  [
-    set color pink
-    set size 5
-  ]
-  ]
-
-end
-
-
-to spawn-chickens
-
-  ask n-of num-chickens patches
-  [
-  sprout-chickens 1
-  [
-    set color white
-    set size 3
-    set shape "circle"
-  ]
-  ]
+  set initial_population 100
 
 end
 
 
 to go
 
+  ask turtles
+  [
+    move
+    set age (age + 1)
+    set size (0.5 + 2 * (age / age_of_death))
+  ]
+
+  ask turtles with [color = blue and age >= age_of_maturity]
+  [
+    reproduce
+  ]
+
+  ask turtles with [age > age_of_death]
+  [die]
+
   tick
 
-  humans-move
-  humans-look
+end
 
-  chickens-die
-  chickens-move
+
+to move ; turtle context
+
+  right ((random 61) - 30)
+
+  if not (can-move? 1)
+  [right 180]
+
+  fd 1
 
 end
 
 
-to humans-look
+to reproduce ; turtle context
 
-  ask patches [set pcolor black]
-
-  ;calculate where humans can see (chicken)
-  ask humans [
-    let my-visible-patches patches-i-can-see
-    ask my-visible-patches [set pcolor blue]
-
-  ]
-
-end
-
-to-report patches-i-can-see
-  report patches in-cone human-vision-distance human-deviation-angle
-end
-
-
-to humans-move
-
-  ask humans
+  if any? turtles-here with [color = red and age >= age_of_maturity]
   [
-    let my-visible-patches patches-i-can-see
-    ifelse any? chickens-on my-visible-patches
+    hatch 1
     [
-      face my-target [set pcolor orange]
+      set age 0
+      set color yellow
+      set size (0.5 + 2 * (age / age_of_death))
     ]
-
-    set heading (heading - (human-deviation-angle / 2) + random (human-deviation-angle + 1))
-    fd 1
+    ask patch-here [set num-born (num-born + 1)]
   ]
 
 end
 
 
-to chickens-die
+to-report adult_turtles
 
-  ask chickens
-  [
-    if any? humans-here
-    [
-      hatch 1
-      [
-        set breed deads
-        set color red
-        set shape "x"
-      ]
-      die
-    ]
-  ]
+  report turtles with [age >= age_of_maturity]
 
 end
 
 
-to chickens-move
+to-report num_adult_turtles
 
-  ask chickens
-  [
-    move-to one-of neighbors4
-  ]
+  report count (turtles with [age >= age_of_maturity])
 
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-212
-15
-750
-554
+210
+10
+872
+673
 -1
 -1
-2.64
+19.82
 1
 10
 1
@@ -191,10 +129,10 @@ GRAPHICS-WINDOW
 0
 0
 1
--100
-100
--100
-100
+-16
+16
+-16
+16
 1
 1
 1
@@ -202,10 +140,44 @@ ticks
 30.0
 
 BUTTON
-79
-67
-145
-100
+72
+24
+135
+57
+run
+go
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+76
+99
+139
+132
+step
+go
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+75
+176
+141
+209
 NIL
 setup
 NIL
@@ -218,39 +190,53 @@ NIL
 NIL
 1
 
-BUTTON
-79
-108
-146
-141
-NIL
-go
-T
+SLIDER
+18
+260
+190
+293
+age_of_maturity
+age_of_maturity
+0
+100
+5.0
 1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
 1
+NIL
+HORIZONTAL
 
-BUTTON
-80
-162
-143
-195
-go
-go
-NIL
+SLIDER
+17
+301
+189
+334
+age_of_death
+age_of_death
+0
+100
+20.0
 1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
 1
+NIL
+HORIZONTAL
+
+PLOT
+15
+365
+199
+539
+plot 1
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot count turtles"
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -594,7 +580,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.4.0
+NetLogo 6.2.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
